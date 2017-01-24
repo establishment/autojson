@@ -1,0 +1,4 @@
+#pragma once
+#include <autojson_src/json.cpp>
+
+using AutoJson::Json;
