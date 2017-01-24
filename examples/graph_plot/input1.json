@@ -1,0 +1,21 @@
+{
+    "edges":[
+        {
+            "isDirected":1,
+            "source":"root",
+            "target":"sink"
+        }
+    ],
+    "nodes":{
+        "root":{
+            "x":20,
+            "y":100
+        },
+        "sink":{
+            "x":60,
+            "y":80
+        }
+    },
+    "xSize":100,
+    "ySize":100
+}
