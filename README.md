@@ -18,16 +18,23 @@ There are a lot of JSON libraries out there, no news here, but this one was crea
 
 FAQ
 ---
+
 #### What flags do I need to compile this?
-```-std=c++11```
+
+```
+-std=c++11
+```
+
 #### Do I need to change my compile command to include the auto-generated files?
+
 No.
 
 Just #include them
 
 Installation
 ------------
-```
+
+```sh
 git clone https://github.com/establishment/autojson.git
 cd autojson
 make install
@@ -36,7 +43,8 @@ make install
 Examples
 --------
 ### Declare a JSON anywhere using initializer lists
-```
+
+```cpp
 Json j = {
     {"id", 1},
     {"name", "autojson"},
@@ -46,8 +54,10 @@ Json j = {
     }
 };
 ```
+
 And the JSON will look like:
-```
+
+```json
 {
     "id":1,
     "name":"autojson",
@@ -60,12 +70,14 @@ And the JSON will look like:
 ```
 
 or it can be minified
-```
+
+```json
 {"id":1,"name":"autojson","tags":["github","json","c++"]}
 ```
 
 ### Parsing JSONs
-``` 
+
+```cpp
 /// read JSON from file
 Json file_json = Json::ReadFromFile("config.json");
 
@@ -78,7 +90,8 @@ Json text_json = Json::Parse(stringified_json);
 
 ### Retrieving information from JSONs
 Same format as with python or javascript
-```
+
+```cpp
 Json j = Json::ReadFromFile("config.json");
 int id = j["id"];
 string name = j["name"];
@@ -86,7 +99,8 @@ vector<string> tags = j["tags"]
 ```
 
 ### Give a default-value to a field that may be missing
-```
+
+```cpp
 Json j;
 ...
 // if j has the field "id", that value will be returned
@@ -102,7 +116,8 @@ int priority = j["priority"] || -1;
 ```
 
 ### Putting information in JSONs
-```
+
+```cpp
 #include <json>
 #include <iostream>
 using namespace std;
@@ -134,8 +149,10 @@ int main() {
     cout << result << '\n';
 }
 ```
+
 #### Output
-```
+
+```json
 {
     "even numbers":[
         0,
@@ -160,10 +177,10 @@ int main() {
 }
 ```
 
-
 ### For-based loops inside JSONs
 If your JSON/field is an array for-based loops can be used to iterate over it. 
-```
+
+```cpp
 Json j;
 // j["numbers"] is an array of numbers 
 for (int number : j["numbers"]) {
