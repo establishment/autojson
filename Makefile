@@ -8,6 +8,6 @@ install: installlib
 
 cleanlib:
 	rm -rf /usr/local/include/autojson_src
-	rm /usr/local/include/autojson
+	rm /usr/local/include/json
 
 clean: cleanlib
