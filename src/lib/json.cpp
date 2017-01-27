@@ -1,5 +1,6 @@
 #pragma once
 #include <fstream>
+#include <ostream>
 
 #include "error.hpp"
 #include "parse.hpp"
@@ -230,7 +231,7 @@ Json Json::ReadFromFile(const std::string& file) {
     return Parse(content_p);
 }
 
-void Json::Stringify(StringifyPart part) {
+void Json::Stringify(StringifyPart part) const {
     if (type == JsonType::PRIMITIVE) {
         StringifyPrimitive(part);
     } else if (type == JsonType::STRING) {
@@ -244,7 +245,7 @@ void Json::Stringify(StringifyPart part) {
     }
 }
 
-std::string Json::Stringify(int shrink) {
+std::string Json::Stringify(int shrink) const {
     std::string result;
     StringifyPart part(result, 0, shrink, false);
     Stringify(part);
@@ -271,8 +272,13 @@ void Json::CheckType(JsonType type) const {
     }
 }
 
+std::ostream& operator<<(std::ostream& stream, const Json& json) {
+    stream << json.Stringify();
+    return stream;
+}
+
 /// Json Primitive
-void Json::StringifyPrimitive(StringifyPart part) {
+void Json::StringifyPrimitive(StringifyPart part) const {
     part.Indent();
     part.result += *((std::string*)content);
 }
@@ -367,24 +373,30 @@ Json::operator long double() const {
 
 /// Json String
 
-void Json::StringifyString(StringifyPart part) {
+void Json::StringifyString(StringifyPart part) const {
     part.Indent();
     part.result += "\"" + EscapeKeys(*((std::string*)content)) + "\"";
 }
 
 Json::operator std::string() {
-    CheckType(JsonType::STRING);
-    return std::string(*(std::string*)(this->content));
+    if (this->type == JsonType::STRING) {
+        return std::string(*(std::string*)(this->content));
+    } else {
+        return this->Stringify();
+    }
 }
 
 Json::operator std::string() const {
-    CheckType(JsonType::STRING);
-    return std::string(*(std::string*)(this->content));
+    if (this->type == JsonType::STRING) {
+        return std::string(*(std::string*)(this->content));
+    } else {
+        return this->Stringify();
+    }
 }
 
 /// Json Vector
 
-void Json::StringifyVector(StringifyPart part) {
+void Json::StringifyVector(StringifyPart part) const {
     CheckType(JsonType::VECTOR);
 
     part.Indent();
@@ -521,7 +533,7 @@ int Json::size() const {
 
 /// Json Object
 
-void Json::StringifyObject(StringifyPart part) {
+void Json::StringifyObject(StringifyPart part) const {
     CheckType(JsonType::OBJECT);
 
     part.Indent();
