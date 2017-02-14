@@ -1,7 +1,8 @@
 #pragma once
 
+#include <type_traits>
 #include <initializer_list>
-#include <iostream>
+#include <ostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -32,7 +33,7 @@ struct Json {
     ~Json();
 
     Json(const Json&);
-    
+
     Json& operator=(const Json&);
 
     Json(Json&&);
@@ -62,13 +63,8 @@ struct Json {
     Json(char c) : type(JsonType::STRING), content(new std::string(1, c)) { }
 
     Json(const char* c) : type(JsonType::STRING), content(new std::string(c)) { }
-    
-    Json(const std::string& c) : type(JsonType::STRING), content(new std::string(c)) { }
 
-    /// If type is unknown, treat the object like a primitive
-    /// This constructor can be specialised for custom classes
-    template<typename T> 
-    Json(const T& a) : type(JsonType::PRIMITIVE), content(new std::string(std::to_string(a))) { }
+    Json(const std::string& c) : type(JsonType::STRING), content(new std::string(c)) { }
 
     /// Deep copy pointers
     template<typename T>
@@ -88,7 +84,7 @@ struct Json {
     /// std initializer constructor - does good things
     Json(std::initializer_list<Json> list);
 
-    /// ParseJson 
+    /// ParseJson
     static Json Parse(const char*& content);
 
     static Json Parse(const std::string& content);
@@ -96,61 +92,75 @@ struct Json {
     static Json ReadFromFile(const std::string& file_name);
 
     /// Output Json to String
-    std::string Stringify(int shrink=true);
+    std::string Stringify(int shrink=true) const;
 
-    void Stringify(StringifyPart part);
+    void Stringify(StringifyPart part) const;
 
     /// helper functions.
     /// The non-const method casts the JSON to the desired type
     /// if it's INVALID
     void CheckType(JsonType type);
-    
+
     void CheckType(JsonType type) const;
-    
+
+    friend std::ostream& operator<<(std::ostream& stream, const Json& json);
+
     /// primitive
 
-    void StringifyPrimitive(StringifyPart part);
+    void StringifyPrimitive(StringifyPart part) const;
 
     // if the JSON is invalid and not const, it will change type
     // to the converted value and assign it with a default value
     // * 0 for numbers and empty for the other
     // better than throwing an exception
+    operator bool();
+    operator bool() const;
+    Json(bool b) : type(PRIMITIVE), content(new std::string(b ? "true" : "false")) { }
+
     operator int();
     operator int() const;
+    Json(int i) : type(PRIMITIVE), content(new std::string(std::to_string(i))) { }
 
     operator long();
     operator long() const;
+    Json(long l) : type(PRIMITIVE), content(new std::string(std::to_string(l))) { }
 
     operator unsigned long();
     operator unsigned long() const;
+    Json(unsigned long ul) : type(PRIMITIVE), content(new std::string(std::to_string(ul))) { }
 
     operator long long();
     operator long long() const;
+    Json(long long ll) : type(PRIMITIVE), content(new std::string(std::to_string(ll))) { }
 
     operator unsigned long long();
     operator unsigned long long() const;
+    Json(unsigned long long ull) : type(PRIMITIVE), content(new std::string(std::to_string(ull))) { }
 
     operator float();
     operator float() const;
+    Json(float f) : type(PRIMITIVE), content(new std::string(std::to_string(f))) { }
 
     operator double();
     operator double() const;
+    Json(double d) : type(PRIMITIVE), content(new std::string(std::to_string(d))) { }
 
     operator long double();
     operator long double() const;
+    Json(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
 
     /// string
 
-    void StringifyString(StringifyPart part);
+    void StringifyString(StringifyPart part) const;
 
     operator std::string();
     operator std::string() const;
 
     /// vector
 
-    static Json ParseVector(const char*& content); 
-    
-    void StringifyVector(StringifyPart part);
+    static Json ParseVector(const char*& content);
+
+    void StringifyVector(StringifyPart part) const;
 
     Json& operator[](int key);
 
@@ -179,11 +189,11 @@ struct Json {
 
     /// object
     static Json ParseObject(const char*& content);
-    
-    void StringifyObject(StringifyPart part);
-    
+
+    void StringifyObject(StringifyPart part) const;
+
     Json& operator[](const std::string& key);
-    
+
     Json& operator[](const char* key);
 
     template<typename Type>
@@ -191,6 +201,25 @@ struct Json {
 
     template<typename Type>
     operator std::map<std::string, Type>() const;
+
+    bool Valid() { return type; }
+    
+    // very very general stuff
+
+    template<typename Type>
+    operator Type();
+
+    /// If type is unknown, treat the object like a primitive
+    /// This constructor can be specialised for custom classes
+    template<typename Type>
+    Json(const Type& a);
+
+    // if you want to call it explicitely
+    template<typename T>
+    void LoadInto(T& x);
+
+    template<typename T>
+    T Get();
 };
 
 struct StringifyPart {

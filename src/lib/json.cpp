@@ -1,6 +1,8 @@
 #pragma once
 #include <fstream>
 #include <ostream>
+#include <typeinfo>
+#include <cxxabi.h>
 
 #include "error.hpp"
 #include "parse.hpp"
@@ -35,7 +37,7 @@ Json::~Json() {
 
 Json::Json(const Json& rhs) {
     *this = rhs;
-} 
+}
 
 Json& Json::operator=(const Json& rhs) {
     this->type = rhs.type;
@@ -125,7 +127,7 @@ Json::Json(const std::vector<Type>& els) : type(JsonType::VECTOR) {
         v->emplace_back(Json(itr));
     }
 
-    this->content = v;    
+    this->content = v;
 }
 
 template<typename T>
@@ -177,7 +179,7 @@ Json Json::Parse(const char*& content) {
     };
 
     auto Eof = [&]() {
-        return (*content == '\0');  
+        return (*content == '\0');
     };
 
     SkipWhitespace(content, ",");
@@ -203,7 +205,7 @@ Json Json::Parse(const char*& content) {
         Json j;
         SkipWhitespace(content, ",");
         return Json(JsonType::PRIMITIVE, new std::string(word));
-    }       
+    }
 }
 
 Json Json::Parse(const std::string& content) {
@@ -241,7 +243,7 @@ void Json::Stringify(StringifyPart part) const {
     } else if (type == JsonType::OBJECT) {
         StringifyObject(part);
     } else {
-        JsonError("Invalid Json");
+        JsonError("Cannot Stringify an invalid Json");
     }
 }
 
@@ -255,7 +257,7 @@ std::string Json::Stringify(int shrink) const {
 void Json::CheckType(JsonType type) {
     if (type != this->type) {
         if (this->type == JsonType::INVALID) {
-            *this = Json(type); 
+            *this = Json(type);
         } else {
             std::string message = "Wrong type. Expected ";
             message += std::to_string(this->type);
@@ -283,6 +285,25 @@ void Json::StringifyPrimitive(StringifyPart part) const {
     part.result += *((std::string*)content);
 }
 
+Json::operator bool() {
+    CheckType(JsonType::PRIMITIVE);
+    auto& txt = *(std::string*)(this->content);
+    bool val = false;
+    if (txt == "true" || txt == "1") {
+        val = true;
+    }
+    return val;   
+}
+
+Json::operator bool() const {
+    CheckType(JsonType::PRIMITIVE);
+    auto& txt = *(std::string*)(this->content);
+    bool val = false;
+    if (txt == "true" || txt == "1") {
+        val = true;
+    }
+    return val;
+}
 
 Json::operator int() {
     CheckType(JsonType::PRIMITIVE);
@@ -421,7 +442,7 @@ void Json::StringifyVector(StringifyPart part) const {
     part.result += "]";
 }
 
-Json Json::ParseVector(const char*& content) { 
+Json Json::ParseVector(const char*& content) {
     auto v = new std::vector<Json>;
 
     Json j;
@@ -488,7 +509,7 @@ Json::operator std::vector<Type>() {
     CheckType(JsonType::VECTOR);
     std::vector<Type> v;
     for (Json& itr : (*this)) {
-        v.emplace_back(Type(itr));
+        v.emplace_back(itr.Get<Type>());
     }
     return v;
 }
@@ -498,10 +519,11 @@ Json::operator std::vector<Type>() const {
     CheckType(JsonType::VECTOR);
     std::vector<Type> v;
     for (const Json& itr : (*this)) {
-        v.emplace_back(Type(itr));
+        v.emplace_back(itr.Get<Type>());
     }
     return v;
 }
+
 
 template<typename Type>
 Json& Json::push_back(const Type& rhs) {
@@ -619,6 +641,65 @@ Json::operator std::map<std::string, Type>() const {
         m[itr.first] = Type(itr.second);
     }
     return m;
+}
+
+template<typename Type>
+Json::operator Type() { 
+    char * name = 0;
+    int status;
+    name = abi::__cxa_demangle(typeid(Type).name(), 0, 0, &status);
+
+    std::string type_name = "";
+    
+    if (name != 0) {
+        type_name = name;
+    } else { 
+        type_name = typeid(Type).name();
+    }
+
+    free(name);
+
+    std::string message = "";
+    message += "Unknown conversion from Json to ";
+    message += type_name;
+    message += "\n";
+    JsonError(message);
+}
+
+/// If type is unknown, treat the object like a primitive
+/// This constructor can be specialised for custom classes
+template<typename Type>
+Json::Json(__attribute__((unused)) const Type& a) {
+    char * name = 0;
+    int status;
+    name = abi::__cxa_demangle(typeid(Type).name(), 0, 0, &status);
+
+    std::string type_name = "";
+    
+    if (name != 0) {
+        type_name = name;
+    } else { 
+        type_name = typeid(Type).name();
+    }
+
+    free(name);
+
+    std::string message = "";
+    message += "Undefined constructor for Json from type ";
+    message += type_name;
+    message += "\n";
+    JsonError(message);    
+}
+
+// if you want to call it explicitely
+template<typename T>
+void Json::LoadInto(T& x) { 
+    x = this->operator T();
+}
+
+template<typename T>
+T Json::Get() { 
+    return this->operator T();
 }
 
 /// StringifyPart
