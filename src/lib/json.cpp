@@ -628,7 +628,7 @@ Json::operator std::map<std::string, Type>() {
     std::map<std::string, Type> m;
     auto& mp = *(std::map<std::string, Json>*)(content);
     for (auto& itr : mp) {
-        m[itr.first] = Type(itr.second);
+        m[itr.first] = itr.second.Get<Type>();
     }
     return m;
 }
@@ -638,7 +638,7 @@ Json::operator std::map<std::string, Type>() const {
     std::map<std::string, Type> m;
     auto& mp = *(std::map<std::string, Json>*)(content);
     for (const auto& itr : mp) {
-        m[itr.first] = Type(itr.second);
+        m[itr.first] = itr.second.Get<Type>();
     }
     return m;
 }

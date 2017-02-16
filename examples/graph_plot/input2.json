@@ -1,5 +1,5 @@
 {
-    "edges":[
+    "allEdges":[
         {
             "isDirected":1,
             "source":"root",
@@ -13,7 +13,7 @@
         }
     ],
 
-    "nodes":{
+    "nodeInfo":{
         "root":{
             "x":20,
             "y":90

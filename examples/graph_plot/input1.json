@@ -1,12 +1,12 @@
 {
-    "edges":[
+    "allEdges":[
         {
             "isDirected":1,
             "source":"root",
             "target":"sink"
         }
     ],
-    "nodes":{
+    "nodeInfo":{
         "root":{
             "x":20,
             "y":100

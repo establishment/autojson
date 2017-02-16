@@ -1,4 +1,3 @@
-#include "graph_plot.h"
 #include "graph_plot_json_impl.h"
 
 #include <json>
@@ -11,7 +10,7 @@ int main(int argc, char* argv[]) {
         exit(0);
     }
 
-    Json j = (Json::ReadFromFile(argv[1]));
+    Json j = Json::ReadFromFile(argv[1]);
 
     GraphPlot p(j);
 

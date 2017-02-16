@@ -1,6 +1,4 @@
 #pragma once
-#include <json>
-
 #include <map>
 #include <string>
 #include <vector>
@@ -14,18 +12,12 @@ struct GraphPlot {
         /// coordinates of the node
         int x_pos;
         int y_pos;
-
-        Node() { }
-        Node(Json& j);
     };
 
     struct Edge {
         string source;
         string target;
         int is_directed;
-
-        Edge() { }
-        Edge(Json& j);
     };
 
     /// size of the canvas
@@ -36,6 +28,4 @@ struct GraphPlot {
     map<string, Node> node_info;
 
     GraphPlot() : x_size(500), y_size(500), all_edges(), node_info() { }
-
-    GraphPlot(Json& j);
 };
