@@ -1,5 +1,5 @@
-#ifndef CPP_AUTOJSON_PARSE_HPP
-#define CPP_AUTOJSON_PARSE_HPP
+#ifndef AUTOJSON_PARSE_HPP
+#define AUTOJSON_PARSE_HPP
 #include <string>
 
 namespace AutoJson {
