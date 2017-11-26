@@ -1,4 +1,7 @@
-#pragma once
-#include <autojson_src/json.cpp>
+#ifndef AUTOJSON_ENTRY_POINT
+#define AUTOJSON_ENTRY_POINT
+#include "json.cpp"
 
 using AutoJson::Json;
+
+#endif
