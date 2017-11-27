@@ -1,4 +1,5 @@
-#include <string>
+#include "parse.hpp"
+
 #include <iostream>
 
 namespace AutoJson {
@@ -15,7 +16,7 @@ void ParseError(const std::string& message, const char* content_pos) {
     std::cerr << '\n';
 }
 
-bool CanSkipWhitespace(const char* content, const std::string& custom_pass="") {
+bool CanSkipWhitespace(const char* content, const std::string& custom_pass) {
     if (*content == '\0') {
         return false;
     }

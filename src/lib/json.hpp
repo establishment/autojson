@@ -1,15 +1,11 @@
 #ifndef AUTOJSON_JSON_HPP
 #define AUTOJSON_JSON_HPP
 
-#include <type_traits>
 #include <initializer_list>
 #include <ostream>
 #include <map>
 #include <string>
 #include <vector>
-#include <cxxabi.h>
-
-#include "error.hpp"
 
 namespace AutoJson {
 
@@ -31,7 +27,7 @@ struct Json {
 
     Json(JsonType type);
 
-    /// takes ownership of pointer
+    // takes ownership of pointer
     Json(JsonType type, void* content) : type(type), content(content) { }
 
     ~Json();
@@ -44,9 +40,9 @@ struct Json {
 
     Json& operator=(Json&&);
 
-    /// if the JSON is invalid (just declared or it's not in a map)
-    /// the | or || operator will give it a valud for easier use when writing
-    /// deserialize specialised methods
+    // if the JSON is invalid (just declared or it's not in a map)
+    // the | or || operator will give it a valud for easier use when writing
+    // deserialize specialised methods
     template<typename T>
     Json& operator||(const T&);
 
@@ -63,46 +59,46 @@ struct Json {
 
     Json& operator|(std::initializer_list<Json>);
 
-    /// strings
+    // strings
     Json(char c) : type(JsonType::STRING), content(new std::string(1, c)) { }
 
     Json(const char* c) : type(JsonType::STRING), content(new std::string(c)) { }
 
     Json(const std::string& c) : type(JsonType::STRING), content(new std::string(c)) { }
 
-    /// Deep copy pointers
+    // Deep copy pointers
     template<typename T>
     Json(const T*);
 
-    /// Deep copy pointers
+    // Deep copy pointers
     template<typename T>
     Json(T*);
 
-    /// Light stl constructors
+    // Light stl constructors
     template<typename Type>
     Json(const std::vector<Type>&);
 
     template<typename T>
     Json(const std::map<std::string, T>& els);
 
-    /// std initializer constructor - does good things
+    // std initializer constructor - does good things
     Json(std::initializer_list<Json> list);
 
-    /// ParseJson
+    // ParseJson
     static Json Parse(const char*& content);
 
     static Json Parse(const std::string& content);
 
     static Json ReadFromFile(const std::string& file_name);
 
-    /// Output Json to String
+    // Output Json to String
     std::string Stringify(int shrink=true) const;
 
     void Stringify(StringifyPart part) const;
 
-    /// helper functions.
-    /// The non-const method casts the JSON to the desired type
-    /// if it's INVALID
+    // helper functions.
+    // The non-const method casts the JSON to the desired type
+    // if it's INVALID
     void CheckType(JsonType type);
 
     void CheckType(JsonType type) const;
@@ -153,14 +149,14 @@ struct Json {
     operator long double() const;
     Json(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
 
-    /// string
+    // string
 
     void StringifyString(StringifyPart part) const;
 
     operator std::string();
     operator std::string() const;
 
-    /// vector
+    // vector
 
     static Json ParseVector(const char*& content);
 
@@ -174,7 +170,7 @@ struct Json {
     template<typename Type>
     operator std::vector<Type>() const;
 
-    /// for for-based loops
+    // for for-based loops
     std::vector<Json>::iterator begin();
     std::vector<Json>::const_iterator begin() const;
 
@@ -191,7 +187,7 @@ struct Json {
 
     int size() const;
 
-    /// object
+    // object
     static Json ParseObject(const char*& content);
 
     void StringifyObject(StringifyPart part) const;
@@ -213,8 +209,8 @@ struct Json {
     template<typename Type>
     operator Type();
 
-    /// If type is unknown, treat the object like a primitive
-    /// This constructor can be specialised for custom classes
+    // If type is unknown, treat the object like a primitive
+    // This constructor can be specialised for custom classes
     template<typename Type>
     Json(const Type& a);
 
@@ -247,192 +243,8 @@ struct StringifyPart {
     StringifyPart& DeleteComma();
 };
 
-
-/// operators | and || for giving a default value to invaild JSONs
-template<typename T>
-Json& Json::operator||(const T& rhs) {
-    if (this->type == JsonType::INVALID) {
-        *this = Json(rhs);
-    }
-    return *this;
-}
-
-template<typename T>
-Json& Json::operator||(T&& rhs) {
-    if (this->type == JsonType::INVALID) {
-        *this = Json(std::move(rhs));
-    }
-    return *this;
-}
-
-template<typename T>
-Json& Json::operator|(const T& rhs) {
-    return *this || rhs;
-}
-
-template<typename T>
-Json& Json::operator|(T&& rhs) {
-    return *this || std::move(rhs);
-}
-
-
-/// deep copy pointers
-
-template<typename T>
-Json::Json(const T* x) : type(INVALID), content(nullptr) {
-    if (x != nullptr) {
-        *this = Json(*x);
-    }
-}
-
-template<typename T>
-Json::Json(T* x) : type(INVALID), content(nullptr) {
-    if (x != nullptr) {
-        *this = Json(*x);
-    }
-}
-
-/// small STL constructors
-
-template<typename Type>
-Json::Json(const std::vector<Type>& els) : type(JsonType::VECTOR) {
-    auto v = new std::vector<Json>;
-
-    for (const Type& itr : els) {
-        v->emplace_back(Json(itr));
-    }
-
-    this->content = v;
-}
-
-template<typename T>
-Json::Json(const std::map<std::string, T>& els) : type(JsonType::OBJECT) {
-    auto m = new std::map<std::string, Json>;
-
-    for (const auto& itr : els) {
-        (*m)[itr.first] = Json(itr.second);
-    }
-    this->content = m;
-}
-
-template<typename Type>
-Json::operator std::vector<Type>() {
-    CheckType(JsonType::VECTOR);
-    std::vector<Type> v;
-    for (Json& itr : (*this)) {
-        v.emplace_back(itr.Get<Type>());
-    }
-    return v;
-}
-
-template<typename Type>
-Json::operator std::vector<Type>() const {
-    CheckType(JsonType::VECTOR);
-    std::vector<Type> v;
-    for (const Json& itr : (*this)) {
-        v.emplace_back(itr.Get<Type>());
-    }
-    return v;
-}
-
-
-template<typename Type>
-Json& Json::push_back(const Type& rhs) {
-    CheckType(JsonType::VECTOR);
-    auto& v = *(std::vector<Json>*)(this->content);
-    v.push_back(rhs);
-    return v.back();
-}
-
-template<typename Type>
-Json& Json::emplace_back(Type&& rhs) {
-    CheckType(JsonType::VECTOR);
-    auto& v = *(std::vector<Json>*)(this->content);
-    v.emplace_back(rhs);
-    return v.back();
-}
-
-
-template<typename Type>
-Json::operator std::map<std::string, Type>() {
-    std::map<std::string, Type> m;
-    auto& mp = *(std::map<std::string, Json>*)(content);
-    for (auto& itr : mp) {
-        m[itr.first] = itr.second.Get<Type>();
-    }
-    return m;
-}
-
-template<typename Type>
-Json::operator std::map<std::string, Type>() const {
-    std::map<std::string, Type> m;
-    auto& mp = *(std::map<std::string, Json>*)(content);
-    for (const auto& itr : mp) {
-        m[itr.first] = itr.second.Get<Type>();
-    }
-    return m;
-}
-
-template<typename Type>
-Json::operator Type() {
-    char * name = 0;
-    int status;
-    name = abi::__cxa_demangle(typeid(Type).name(), 0, 0, &status);
-
-    std::string type_name = "";
-
-    if (name != 0) {
-        type_name = name;
-    } else {
-        type_name = typeid(Type).name();
-    }
-
-    free(name);
-
-    std::string message = "";
-    message += "Unknown conversion from Json to ";
-    message += type_name;
-    message += "\n";
-    JsonError(message);
-}
-
-/// If type is unknown, treat the object like a primitive
-/// This constructor can be specialised for custom classes
-template<typename Type>
-Json::Json(__attribute__((unused)) const Type& a) {
-    char * name = 0;
-    int status;
-    name = abi::__cxa_demangle(typeid(Type).name(), 0, 0, &status);
-
-    std::string type_name = "";
-
-    if (name != 0) {
-        type_name = name;
-    } else {
-        type_name = typeid(Type).name();
-    }
-
-    free(name);
-
-    std::string message = "";
-    message += "Undefined constructor for Json from type ";
-    message += type_name;
-    message += "\n";
-    JsonError(message);
-}
-
-// if you want to call it explicitely
-template<typename T>
-void Json::LoadInto(T& x) {
-    x = this->operator T();
-}
-
-template<typename T>
-T Json::Get() {
-    return this->operator T();
-}
-
-
-
 }  // namespace AutoJson
-#endif
+
+#include "json.tpp"
+
+#endif // AUTOJSON_JSON_HPP

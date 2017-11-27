@@ -1,5 +1,6 @@
 #ifndef AUTOJSON_PARSE_HPP
 #define AUTOJSON_PARSE_HPP
+
 #include <string>
 
 namespace AutoJson {
@@ -17,4 +18,5 @@ std::string ParseWord(const char*& content);
 std::string ParseString(const char*& content);
 
 } // namespace AutoJson
-#endif
+
+#endif // AUTOJSON_PARSE_HPP

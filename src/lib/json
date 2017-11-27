@@ -1,7 +1,8 @@
 #ifndef AUTOJSON_ENTRY_POINT
 #define AUTOJSON_ENTRY_POINT
-#include "json.cpp"
+
+#include "json.hpp"
 
 using AutoJson::Json;
 
-#endif
+#endif // AUTOJSON_ENTRY_POINT

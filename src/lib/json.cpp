@@ -1,9 +1,10 @@
+#include "json.hpp"
+
 #include <fstream>
 #include <ostream>
 #include <typeinfo>
 
 #include "parse.hpp"
-#include "json.hpp"
 
 namespace AutoJson {
 
@@ -20,7 +21,6 @@ Json::Json(JsonType type) : type(type), content(nullptr) {
         this->content = new std::map<std::string, Json>;
     }
 }
-
 
 Json::~Json() {
     if (this->type == JsonType::PRIMITIVE || this->type == JsonType::STRING) {
@@ -63,8 +63,6 @@ Json& Json::operator=(Json&& rhs) {
     return *this;
 }
 
-/// std::initialiser_list
-
 Json::Json(std::initializer_list<Json> list) {
     auto vp = new std::vector<Json>;
     auto& v = *vp;
@@ -103,7 +101,6 @@ Json& Json::operator|(std::initializer_list<Json> list) {
 }
 
 /// Parser for generic JSON
-
 Json Json::Parse(const char*& content) {
     auto CurrentChar = [&]() {
         return *content;
@@ -257,7 +254,6 @@ Json::operator long() const {
     return std::stol(*(std::string*)(this->content));
 }
 
-
 Json::operator unsigned long() {
     CheckType(JsonType::PRIMITIVE);
     return std::stoul(*(std::string*)(this->content));
@@ -279,7 +275,6 @@ Json::operator long long() const {
     return std::stoll(*(std::string*)(this->content));
 }
 
-
 Json::operator unsigned long long() {
     CheckType(JsonType::PRIMITIVE);
     return std::stoull(*(std::string*)(this->content));
@@ -289,7 +284,6 @@ Json::operator unsigned long long() const {
     CheckType(JsonType::PRIMITIVE);
     return std::stoull(*(std::string*)(this->content));
 }
-
 
 Json::operator float() {
     CheckType(JsonType::PRIMITIVE);
@@ -301,7 +295,6 @@ Json::operator float() const {
     return std::stof(*(std::string*)(this->content));
 }
 
-
 Json::operator double() {
     CheckType(JsonType::PRIMITIVE);
     return std::stod(*(std::string*)(this->content));
@@ -312,7 +305,6 @@ Json::operator double() const {
     return std::stod(*(std::string*)(this->content));
 }
 
-
 Json::operator long double() {
     CheckType(JsonType::PRIMITIVE);
     return std::stold(*(std::string*)(this->content));
@@ -322,8 +314,6 @@ Json::operator long double() const {
     CheckType(JsonType::PRIMITIVE);
     return std::stold(*(std::string*)(this->content));
 }
-
-/// Json String
 
 void Json::StringifyString(StringifyPart part) const {
     part.Indent();
@@ -345,8 +335,6 @@ Json::operator std::string() const {
         return this->Stringify();
     }
 }
-
-/// Json Vector
 
 void Json::StringifyVector(StringifyPart part) const {
     CheckType(JsonType::VECTOR);
@@ -447,8 +435,6 @@ int Json::size() const {
     return v.size();
 }
 
-/// Json Object
-
 void Json::StringifyObject(StringifyPart part) const {
     CheckType(JsonType::OBJECT);
 
@@ -517,7 +503,6 @@ Json& Json::operator[](const char* key) {
     return operator[](std::string(key));
 }
 
-/// StringifyPart
 StringifyPart StringifyPart::IncreaseIndent() {
     return StringifyPart(result, indent_level + 1, shrink, continue_line);
 }

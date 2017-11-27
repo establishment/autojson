@@ -4,8 +4,8 @@
 
 namespace AutoJson {
 
-/// Basic Error handling
-/// TODO make this better
+// Basic Error handling
+// TODO make this better
 void JsonError(const std::string& message)
 {
     std::cerr << message << '\n';
