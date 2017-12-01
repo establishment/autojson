@@ -20,7 +20,7 @@ enum JSONType {
 class StringifyPart;
 
 class JSON {
-public:
+  public:
     int type;
     void *content;
 
@@ -224,7 +224,7 @@ public:
 };
 
 class StringifyPart {
-public:
+  public:
     std::string& result;
     int indentLevel;
     bool shrink;
