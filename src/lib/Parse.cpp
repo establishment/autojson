@@ -2,26 +2,26 @@
 
 #include <iostream>
 
-namespace AutoJson {
+namespace autojson {
 
-void ParseError(const std::string& message, const char* content_pos) {
+void ParseError(const std::string &message, const char *contentPos) {
     std::cerr << "[ERROR]\t" << message << '\n';
     std::cerr << "[Json]";
-    for (int i = 0; i < 20; i += 1, content_pos++) {
-        if (*content_pos == '\0') {
+    for (int i = 0; i < 20; i += 1, contentPos++) {
+        if (*contentPos == '\0') {
             break;
         }
-        std::cerr << *content_pos;
+        std::cerr << *contentPos;
     }
     std::cerr << '\n';
 }
 
-bool CanSkipWhitespace(const char* content, const std::string& custom_pass) {
+bool CanSkipWhitespace(const char *content, const std::string &customPass) {
     if (*content == '\0') {
         return false;
     }
 
-    for (char itr : custom_pass) {
+    for (char itr : customPass) {
         if (itr == *content) {
             return true;
         }
@@ -34,23 +34,23 @@ bool CanSkipWhitespace(const char* content, const std::string& custom_pass) {
     return false;
 }
 
-void SkipWhitespace(const char*& content, const std::string& custom_pass) {
-    while (CanSkipWhitespace(content, custom_pass)) {
+void SkipWhitespace(const char *&content, const std::string &customPass) {
+    while (CanSkipWhitespace(content, customPass)) {
         content++;
     }
 }
 
-std::string EscapeKeys(const std::string& content) {
+std::string EscapeKeys(const std::string &content) {
     std::string result = "";
     for (char itr : content) {
-        bool needs_escape = false;
+        bool needsEscape = false;
         for (char c : "\"\'") {
             if (itr == c) {
-                needs_escape = true;
+                needsEscape = true;
             }
         }
 
-        if (needs_escape) {
+        if (needsEscape) {
             result += '\\';
             result += itr;
             continue;
@@ -76,7 +76,7 @@ std::string EscapeKeys(const std::string& content) {
     return result;
 }
 
-std::string ParseWord(const char*& content) {
+std::string ParseWord(const char *&content) {
     std::string word = "";
     auto IsDelimiter = [&]() {
         for (char itr : "\n \t\r,:{}[]") {
@@ -96,7 +96,7 @@ std::string ParseWord(const char*& content) {
     return word;
 }
 
-std::string ParseString(const char*& content) {
+std::string ParseString(const char *&content) {
     if (*content == '\"' or *content == '\'') {
         content++;
     }
@@ -128,4 +128,4 @@ std::string ParseString(const char*& content) {
     return txt;
 }
 
-} // namespace AutoJson
+} // namespace autojson

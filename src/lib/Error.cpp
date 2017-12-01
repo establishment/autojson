@@ -1,12 +1,12 @@
-#include "error.hpp"
+#include "Error.hpp"
 
 #include <iostream>
 
-namespace AutoJson {
+namespace autjson {
 
 // Basic Error handling
 // TODO make this better
-void JsonError(const std::string& message)
+void JSONError(const std::string& message)
 {
     std::cerr << message << '\n';
 }

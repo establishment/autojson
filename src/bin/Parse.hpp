@@ -1,6 +1,7 @@
-#pragma once
+#ifndef AUTOJSON_BIN_PARSE_HPP
+#define AUTOJSON_BIN_PARSE_HPP
 
-#include "ast_elements.hpp"
+#include "ASTElements.hpp"
 
 #include <functional>
 #include <fstream>
@@ -8,10 +9,9 @@
 #include <string>
 #include <vector>
 #include <map>
-using namespace std;
 
-string EraseComments(const string& content) {
-    string result;
+std::string EraseComments(const std::string &content) {
+    std::string result;
     result += content[0];
 
     bool quoted = false;
@@ -66,8 +66,8 @@ string EraseComments(const string& content) {
     return result;
 }
 
-vector<string> GetWords(const string& content) {
-    string standalone = "{}:;()[],<>";
+std::vector<std::string> GetWords(const std::string &content) {
+    std::string standalone = "{}:;()[],<>";
     auto IsStandalone = [&](char c) {
         for (char itr : standalone) {
             if (itr == c) {
@@ -78,7 +78,7 @@ vector<string> GetWords(const string& content) {
     };
 
 
-    string delimiters = "\t\n ";
+    std::string delimiters = "\t\n ";
     auto IsDelimiter = [&](char c) {
         for (char itr : delimiters) {
             if (itr == c) {
@@ -88,26 +88,26 @@ vector<string> GetWords(const string& content) {
         return false;
     };
 
-    vector<string> words;
-    string current_word = "";
+    std::vector<std::string> words;
+    std::string currentWord = "";
     auto Add = [&]() {
-        if (current_word.size() == 0) {
+        if (currentWord.size() == 0) {
             return;
         }
-        words.push_back(current_word);
-        current_word = "";
+        words.push_back(currentWord);
+        currentWord = "";
     };
 
 
     for (char itr : content) {
         if (IsStandalone(itr)) {
             Add();
-            current_word = itr;
+            currentWord = itr;
             Add();
         } else if (IsDelimiter(itr)) {
             Add();
         } else {
-            current_word += itr;
+            currentWord += itr;
         }
     }
 
@@ -116,33 +116,33 @@ vector<string> GetWords(const string& content) {
     return words;
 }
 
-string ReadFromFile(const string& file) {
+std::string ReadFromFile(const std::string& file) {
     std::ifstream fin(file, std::ios::in | std::ios::binary);
-    std::string file_information;
+    std::string fileInformation;
 
     if (fin) {
         fin.seekg(0, fin.end);
-        file_information.resize(fin.tellg());
+        fileInformation.resize(fin.tellg());
 
         fin.seekg(0, fin.beg);
 
-        fin.read(& file_information[0], file_information.size());
+        fin.read(& fileInformation[0], fileInformation.size());
         fin.close();
     } else {
-        cerr << "Something went wrong while reading\n";
+        std::cerr << "Something went wrong while reading\n";
     }
 
-    return file_information;
+    return fileInformation;
 }
 
-ClassBundle ParseClasses(const vector<string>& words) {
-    map<string, Class> classes;
-    
-    string scope = "::";
+ClassBundle ParseClasses(const std::vector<std::string>& words) {
+    std::map<std::string, Class> classes;
+
+    std::string scope = "::";
 
     int index = 0;
 
-    auto PopLastScope = [](string& txt) {
+    auto PopLastScope = [](std::string& txt) {
         txt.pop_back();
         txt.pop_back();
         while (txt.size() and txt.back() != ':') {
@@ -150,13 +150,13 @@ ClassBundle ParseClasses(const vector<string>& words) {
         }
     };
 
-    function<void(bool)> Parse;
+    std::function<void(bool)> Parse;
 
     Parse = [&](bool add) -> void {
-        bool had_namespace = false;
-        bool had_class = false;
-        bool is_enum = false;
-        string last_scope_name = "";      
+        bool hadNamespace = false;
+        bool hadClass = false;
+        bool isEnum = false;
+        std::string lastScopeName = "";
 
         while (1) {
             if (index >= (int)words.size()) {
@@ -166,17 +166,17 @@ ClassBundle ParseClasses(const vector<string>& words) {
             auto& current = words[index];
 
             if (current == "namespace" and words[index - 1] != "using") {
-                had_namespace = true;
-                last_scope_name = words[index + 1];
+                hadNamespace = true;
+                lastScopeName = words[index + 1];
                 index += 2;
                 continue;
             }
 
             if (current == "class" || current == "struct" || current == "enum") {
-                had_class = true;
-                last_scope_name = words[index + 1];
+                hadClass = true;
+                lastScopeName = words[index + 1];
                 if (current == "enum") {
-                    is_enum = true;
+                    isEnum = true;
                 }
                 index += 2;
                 continue;
@@ -184,21 +184,21 @@ ClassBundle ParseClasses(const vector<string>& words) {
 
             if (current == "{") {
                 index += 1;
-                if (had_namespace || had_class) {
-                    auto last_scope = scope;
-                    scope += last_scope_name + "::";
+                if (hadNamespace || hadClass) {
+                    auto lastScope = scope;
+                    scope += lastScopeName + "::";
 
-                    if (had_class) {
+                    if (hadClass) {
                         if (classes.find(scope) == classes.end()) {
-                            classes[scope] = Class({"", last_scope, last_scope_name, {}, is_enum});
+                            classes[scope] = Class({"", lastScope, lastScopeName, {}, isEnum});
                         } else {
-                            had_class = false;
+                            hadClass = false;
                         }
                     }
 
-                    Parse(had_class);
+                    Parse(hadClass);
 
-                    had_namespace = had_class = is_enum = false;
+                    hadNamespace = hadClass = isEnum = false;
                     PopLastScope(scope);
                 } else {
                     Parse(false);
@@ -223,61 +223,61 @@ ClassBundle ParseClasses(const vector<string>& words) {
                     continue;
                 }
 
-                int start_index = index - 1;
-                while (words[start_index] != ")" and 
-                        words[start_index] != ";" and 
-                        words[start_index] != "{" and 
-                        words[start_index] != "}" and
-                        !(words[start_index] == ":" and words[start_index - 1] == "public") and
-                        !(words[start_index] == ":" and words[start_index - 1] == "private") and
-                        !(words[start_index] == ":" and words[start_index - 1] == "protected")) {
-                    start_index -= 1;
+                int startIndex = index - 1;
+                while (words[startIndex] != ")" and
+                        words[startIndex] != ";" and
+                        words[startIndex] != "{" and
+                        words[startIndex] != "}" and
+                        !(words[startIndex] == ":" and words[startIndex - 1] == "public") and
+                        !(words[startIndex] == ":" and words[startIndex - 1] == "private") and
+                        !(words[startIndex] == ":" and words[startIndex - 1] == "protected")) {
+                    startIndex -= 1;
                 }
-                
-                start_index += 1;
 
-                if (words[start_index] == "static") {
+                startIndex += 1;
+
+                if (words[startIndex] == "static") {
                     index += 1;
                     continue;
                 }
 
-                int first_val = start_index;
-                int num_templates = 0;
-                while ((words[first_val] != "," and words[first_val] != ";") or num_templates) {
-                    if (words[first_val] == ">") {
-                        num_templates -= 1;
-                    } 
-
-                    if (words[first_val] == "<") {
-                        num_templates += 1;
+                int firstVal = startIndex;
+                int numTemplates = 0;
+                while ((words[firstVal] != "," and words[firstVal] != ";") or numTemplates) {
+                    if (words[firstVal] == ">") {
+                        numTemplates -= 1;
                     }
-                    first_val += 1;
-                }
-                first_val -= 1;
 
-                std::string type = words[start_index] + " ";
-                if (words[start_index] == ":") {
+                    if (words[firstVal] == "<") {
+                        numTemplates += 1;
+                    }
+                    firstVal += 1;
+                }
+                firstVal -= 1;
+
+                std::string type = words[startIndex] + " ";
+                if (words[startIndex] == ":") {
                     type.pop_back();
                 }
 
-                start_index += 1;
-                while (start_index < first_val) {
-                    if (words[start_index] == ":") {
-                        if (words[start_index - 1] != ":") {
+                startIndex += 1;
+                while (startIndex < firstVal) {
+                    if (words[startIndex] == ":") {
+                        if (words[startIndex - 1] != ":") {
                             type.pop_back();
                         }
                         type += ":";
                     } else {
-                        type += words[start_index] + " ";
+                        type += words[startIndex] + " ";
                     }
-                    start_index += 1;
+                    startIndex += 1;
                 }
 
                 type.pop_back();
 
-                while (first_val < index) {
-                    classes[scope].fields.push_back({type, words[first_val]});
-                    first_val += 2;
+                while (firstVal < index) {
+                    classes[scope].fields.push_back({type, words[firstVal]});
+                    firstVal += 2;
                 }
 
 /*
@@ -292,7 +292,7 @@ ClassBundle ParseClasses(const vector<string>& words) {
                         } else {
                             break;
                         }
-                        
+
                         if (words[_index].size() == 1) { // insane life-hack
                             break;
                         }
@@ -303,7 +303,7 @@ ClassBundle ParseClasses(const vector<string>& words) {
 
                     classes[scope].fields.push_back({type, name});
                 }
-*/                
+*/
                 index += 1;
                 continue;
             }
@@ -316,7 +316,9 @@ ClassBundle ParseClasses(const vector<string>& words) {
 
     ClassBundle cb;
     for (auto& itr : classes) {
-        cb.all_classes.push_back(itr.second);
+        cb.allClasses.push_back(itr.second);
     }
     return cb;
 }
+
+#endif // AUTOJSON_BIN_PARSE_HPP

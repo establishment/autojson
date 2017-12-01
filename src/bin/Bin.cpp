@@ -1,6 +1,8 @@
 #include <algorithm>
-#include "code_generator.hpp"
-#include "parse.hpp"
+
+#include "CodeGenerator.hpp"
+#include "Parse.hpp"
+
 using namespace std;
 
 void SolveFile(const string& file) {
@@ -9,17 +11,17 @@ void SolveFile(const string& file) {
     cerr << "~~~~~~~~~~~~~~~~~~~~~~\n";
     cerr << EraseComments(content) << '\n';
     cerr << "~~~~~~~~~~~~~~~~~~~~~~\n";
-    cerr << "\n\n\n\n\n\n\n"; 
+    cerr << "\n\n\n\n\n\n\n";
 */
     content = EraseComments(content);
     auto words = GetWords(content);
     ClassBundle cb = ParseClasses(words);
 
-    cb.UpgradeScopes();
+    cb.upgradeScopes();
 
     cout << "+-+-+-+-+-+-+-+-+-+-+-+-+-+\n";
     cout << "Found the following classes\n";
-    for (auto itr : cb.all_classes) {
+    for (auto itr : cb.allClasses) {
         auto scope = itr.scope;
         auto cls = itr;
         cout << "Name:\t" << cls.name << '\n';
@@ -31,52 +33,51 @@ void SolveFile(const string& file) {
         cout << "<--------->\n\n\n";
     }
 
-    sort(cb.all_classes.begin(), cb.all_classes.end(), [](const auto& a, const auto& b) { return a.scope.size() > b.scope.size(); });
-    string file_content = "";
+    sort(cb.allClasses.begin(), cb.allClasses.end(), [](const auto& a, const auto& b) { return a.scope.size() > b.scope.size(); });
+    string fileContent = "";
 
     {
-        std::string short_file = file;
+        std::string shortFile = file;
         int start = 0;
-        
+
         for (int i = 0; i < (int)file.size(); i += 1) {
             if (file[i] == '/') {
                 start = i;
             }
         }
 
-        file_content += "#include \"" + file.substr(start, file.size()) + "\"\n"
-                        "#include <json>\n\n";
+        fileContent += "#include \"" + file.substr(start, file.size()) + "\"\n"
+                        "#include <JSON>\n\n";
     }
 
-    for (auto itr : cb.all_classes) {
-        file_content += JsonifyClass(itr);
+    for (auto itr : cb.allClasses) {
+        fileContent += JSONifyClass(itr);
     }
 
-    string final_file = file;
-    string remaining_file = "";
+    string finalFile = file;
+    string remainingFile = "";
 
-    while (final_file.size()) {
-        remaining_file += final_file.back();
-        if (final_file.back() == '.') {
-            final_file.pop_back();
+    while (finalFile.size()) {
+        remainingFile += finalFile.back();
+        if (finalFile.back() == '.') {
+            finalFile.pop_back();
             break;
         }
 
-        final_file.pop_back();
+        finalFile.pop_back();
     }
 
-    final_file += "_json_impl";
-    reverse(remaining_file.begin(), remaining_file.end());
-    final_file += remaining_file;
+    finalFile += "JSONImpl";
+    reverse(remainingFile.begin(), remainingFile.end());
+    finalFile += remainingFile;
 
-    ofstream fout(final_file);
-    fout << file_content << '\n';
+    ofstream fout(finalFile);
+    fout << fileContent << '\n';
     fout.close();
 }
 
 int main(int argc, char** argv) {
     for (int i = 1; i < argc; i += 1) {
-        SolveFile(argv[i]);        
+        SolveFile(argv[i]);
     }
 }
-

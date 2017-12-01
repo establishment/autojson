@@ -3,9 +3,9 @@
 
 #include <string>
 
-namespace AutoJson {
+namespace autojson {
 
-void JsonError(const std::string& message);
+void JSONError(const std::string& message);
 
 }  // namespace AutoJson
 
