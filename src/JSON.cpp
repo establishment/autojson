@@ -315,6 +315,14 @@ JSON::operator long double() const {
     return std::stold(*(std::string*)(this->content));
 }
 
+JSON::operator JSON() {
+    return *this;
+}
+
+JSON::operator JSON() const {
+    return *this;
+}
+
 void JSON::stringifyString(StringifyPart part) const {
     part.indent();
     part.result += "\"" + EscapeKeys(*((std::string*)content)) + "\"";

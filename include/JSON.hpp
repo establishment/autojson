@@ -150,6 +150,10 @@ class JSON {
     operator long double() const;
     JSON(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
 
+
+    operator JSON();
+    operator JSON() const;
+
     // string
 
     void stringifyString(StringifyPart part) const;
@@ -248,5 +252,9 @@ class StringifyPart {
 }  // namespace autojson
 
 #include "JSON.tpp"
+
+#ifndef autojsonuselib
+#include "autojson_src/JSON.cpp"
+#endif
 
 #endif // AUTOJSON_JSON_HPP

@@ -19,4 +19,8 @@ std::string ParseString(const char *&content);
 
 } // namespace autojson
 
+#ifndef autojsonuselib
+#include "autojson_src/Parse.cpp"
+#endif
+
 #endif // AUTOJSON_PARSE_HPP

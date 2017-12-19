@@ -1,6 +1,7 @@
 #include <type_traits>
 #include <cxxabi.h>
 
+#include "JSON.hpp"
 #include "Error.hpp"
 
 namespace autojson {
@@ -142,7 +143,7 @@ JSON::operator Type() {
     free(name);
 
     std::string message = "";
-    message += "Unknown conversion from Json to ";
+    message += "Unknown conversion from JSON to ";
     message += typeName;
     message += "\n";
     JSONError(message);

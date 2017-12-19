@@ -1,0 +1,11 @@
+/usr/local/autojson-integrate/autojson-bin
+/usr/local/include/Error.hpp
+/usr/local/include/JSON.hpp
+/usr/local/include/JSON.tpp
+/usr/local/include/JSON
+/usr/local/include/JSONJSONImpl.hpp
+/usr/local/lib/libautojson.a
+/usr/local/include/autojson_src/Parse.cpp
+/usr/local/include/autojson_src/Error.cpp
+/usr/local/include/autojson_src/JSON.cpp
+/usr/local/include/autojson_src/Parse.hpp
