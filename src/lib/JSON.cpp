@@ -5,12 +5,13 @@
 #include <typeinfo>
 
 #include "Parse.hpp"
+#include "Error.hpp"
 
 namespace autojson {
 
 /// Generic
 
-JSON::JSON(JsonType type)
+JSON::JSON(JSONType type)
     : type(type), content(nullptr) {
     if (this->type == JSONType::STRING) {
         this->content = new std::string("");
@@ -118,31 +119,31 @@ JSON JSON::parse(const char*& content) {
     }
 
     if (CurrentChar() == '{') {
-        auto r =  ParseObject(content);
+        auto r =  parseObject(content);
         SkipWhitespace(content, ",");
         return r;
     } else if (CurrentChar() == '[') {
-        auto r = ParseVector(content);
+        auto r = parseVector(content);
         SkipWhitespace(content, ",");
         return r;
     } else if (CurrentChar() == '\"' or CurrentChar() == '\'') {
         auto word = ParseString(content);
         SkipWhitespace(content, ",");
-        return JSON(JsonType::STRING, new std::string(word));
+        return JSON(JSONType::STRING, new std::string(word));
     } else {
         auto word = ParseWord(content);
         JSON j;
         SkipWhitespace(content, ",");
-        return JSON(JsonType::PRIMITIVE, new std::string(word));
+        return JSON(JSONType::PRIMITIVE, new std::string(word));
     }
 }
 
-JSON JSON::Parse(const std::string& content) {
+JSON JSON::parse(const std::string& content) {
     const char* content_p = content.c_str();
-    return Parse(content_p);
+    return parse(content_p);
 }
 
-JSON JSON::ReadFromFile(const std::string& file) {
+JSON JSON::readFromFile(const std::string& file) {
     std::ifstream fin(file, std::ios::in | std::ios::binary);
     std::string file_information;
 
@@ -159,10 +160,10 @@ JSON JSON::ReadFromFile(const std::string& file) {
     }
 
     const char* content_p = file_information.c_str();
-    return Parse(content_p);
+    return parse(content_p);
 }
 
-void JSON::Stringify(StringifyPart part) const {
+void JSON::stringify(StringifyPart part) const {
     if (this->type == JSONType::PRIMITIVE) {
         this->stringifyPrimitive(part);
     } else if (this->type == JSONType::STRING) {
@@ -183,7 +184,7 @@ std::string JSON::stringify(int shrink) const {
     return result;
 }
 
-void JSON::checkType(JsonType type) {
+void JSON::checkType(JSONType type) {
     if (type != this->type) {
         if (this->type == JSONType::INVALID) {
             *this = JSON(type);
@@ -204,7 +205,7 @@ void JSON::checkType(JSONType type) const {
 }
 
 std::ostream& operator<<(std::ostream& stream, const JSON& json) {
-    stream << json.Stringify();
+    stream << json.stringify();
     return stream;
 }
 
@@ -486,7 +487,7 @@ JSON JSON::parseObject(const char*& content) {
         }
 
         content++;
-        (*m)[word] = Parse(content);
+        (*m)[word] = parse(content);
     }
 
     return j;

@@ -2,12 +2,11 @@
 
 #include <iostream>
 
-namespace autjson {
+namespace autojson {
 
 // Basic Error handling
 // TODO make this better
-void JSONError(const std::string& message)
-{
+void JSONError(const std::string& message) {
     std::cerr << message << '\n';
 }
 
