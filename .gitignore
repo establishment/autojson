@@ -1,3 +1,5 @@
+# CLion
+*.cbp
 .idea/
 
 # cmake stuff
