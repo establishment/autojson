@@ -150,6 +150,20 @@ class JSON {
     operator long double() const;
     JSON(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
 
+    bool isInteger();
+    bool isReal();
+    bool isBool();
+    bool isHex();
+    bool isHex16();
+    bool isHex32();
+    bool isHex64();
+    
+    bool isString();
+    bool isArray();
+
+    bool exists(const std::string& key);
+    void set(const std::string& key, const JSON& value);
+    const JSON& get(const std::string& key, const JSON& defaultValue, bool setIfNotExists);
 
     operator JSON();
     operator JSON() const;

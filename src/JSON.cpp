@@ -315,6 +315,103 @@ JSON::operator long double() const {
     return std::stold(*(std::string*)(this->content));
 }
 
+bool JSON::isInteger() {
+    return this->isReal() and ((std::string*)(this->content))->find('.') == std::string::npos;
+}
+
+bool JSON::isReal() {
+    this->checkType(JSONType::PRIMITIVE);
+    try {
+        std::stod(*(std::string*)(this->content));
+        return true;
+    } catch(...) {
+        return false;
+    }   
+}
+
+bool JSON::isBool() {
+    if (this->type != JSONType::PRIMITIVE) {
+        return false;
+    }
+
+    auto& txt = *(std::string*)(this->content);
+    if (txt == "true" || txt == "false") {
+        return true;
+    }
+
+    return false;
+}
+
+bool JSON::isHex() {
+    if (this->type != JSONType::STRING) {
+        return false;
+    }
+
+    auto& txt = *(std::string*)(this->content);
+    bool ok = true;
+
+    for (auto c : txt) {
+        if ('0' <= c and c <= '9') {
+        } else if ('A' <= c and c <= 'F') {
+        } else if ('a' <= c and c <= 'f') {
+        } else {
+            ok = false;
+            break;
+        }
+    }
+
+    return ok;
+}
+
+bool JSON::isHex16() {
+    return this->isHex() and ((std::string*)(this->content))->size() == 16;
+}
+
+bool JSON::isHex32() {
+    return this->isHex() and ((std::string*)(this->content))->size() == 32;
+}
+
+bool JSON::isHex64() {
+    return this->isHex() and ((std::string*)(this->content))->size() == 64;
+}
+
+bool JSON::isString() {
+    return this->type == JSONType::STRING;
+}
+
+bool JSON::isArray() {
+    return this->type == JSONType::VECTOR;
+}
+
+bool JSON::exists(const std::string& key) {
+    this->checkType(JSONType::OBJECT);
+    auto& m = *(std::map<std::string, JSON>*)(this->content);
+    return m.count(key);
+}
+
+
+
+void JSON::set(const std::string& key, const JSON& value) {
+    this->checkType(JSONType::OBJECT);
+    auto& m = *(std::map<std::string, JSON>*)(this->content);
+    m[key] = value;
+}
+
+const JSON& JSON::get(const std::string& key, const JSON& defaultValue = JSON(), bool setIfNotExists = false) {
+    this->checkType(JSONType::OBJECT);
+    auto& m = *(std::map<std::string, JSON>*)(this->content);
+    auto itr = m.find(key);
+    if (itr != m.end()) {
+        return itr->second;
+    }
+
+    if (setIfNotExists) {
+        m[key] = defaultValue;
+    }
+
+    return defaultValue;
+}
+
 JSON::operator JSON() {
     return *this;
 }
