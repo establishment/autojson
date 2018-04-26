@@ -315,11 +315,11 @@ JSON::operator long double() const {
     return std::stold(*(std::string*)(this->content));
 }
 
-bool JSON::isInteger() {
+bool JSON::isInteger() const {
     return this->isReal() and ((std::string*)(this->content))->find('.') == std::string::npos;
 }
 
-bool JSON::isReal() {
+bool JSON::isReal() const {
     this->checkType(JSONType::PRIMITIVE);
     try {
         std::stod(*(std::string*)(this->content));
@@ -329,7 +329,7 @@ bool JSON::isReal() {
     }   
 }
 
-bool JSON::isBool() {
+bool JSON::isBool() const {
     if (this->type != JSONType::PRIMITIVE) {
         return false;
     }
@@ -342,7 +342,7 @@ bool JSON::isBool() {
     return false;
 }
 
-bool JSON::isHex() {
+bool JSON::isHex() const {
     if (this->type != JSONType::STRING) {
         return false;
     }
@@ -363,33 +363,63 @@ bool JSON::isHex() {
     return ok;
 }
 
-bool JSON::isHex16() {
+bool JSON::isHex16() const {
     return this->isHex() and ((std::string*)(this->content))->size() == 16;
 }
 
-bool JSON::isHex32() {
+bool JSON::isHex32() const {
     return this->isHex() and ((std::string*)(this->content))->size() == 32;
 }
 
-bool JSON::isHex64() {
+bool JSON::isHex64() const {
     return this->isHex() and ((std::string*)(this->content))->size() == 64;
 }
 
-bool JSON::isString() {
+bool JSON::isString() const {
     return this->type == JSONType::STRING;
 }
 
-bool JSON::isArray() {
+bool JSON::isArray() const {
     return this->type == JSONType::VECTOR;
 }
 
-bool JSON::exists(const std::string& key) {
+bool JSON::isInteger(const std::string& key) const {
+    return this->exists(key) && this->get(key).isInteger();
+}
+
+bool JSON::isReal(const std::string& key) const {
+    return this->exists(key) && this->get(key).isReal();
+}
+
+bool JSON::isBool(const std::string& key) const {
+    return this->exists(key) && this->get(key).isBool();
+}
+bool JSON::isHex(const std::string& key) const {
+    return this->exists(key) && this->get(key).isHex();
+}
+bool JSON::isHex16(const std::string& key) const {
+    return this->exists(key) && this->get(key).isHex16();
+}
+bool JSON::isHex32(const std::string& key) const {
+    return this->exists(key) && this->get(key).isHex32();
+}
+bool JSON::isHex64(const std::string& key) const {
+    return this->exists(key) && this->get(key).isHex64();
+}
+
+bool JSON::isString(const std::string& key) const {
+    return this->exists(key) && this->get(key).isString();
+}
+bool JSON::isArray(const std::string& key) const {
+    return this->exists(key) && this->get(key).isArray();
+}
+
+bool JSON::exists(const std::string& key) const {
     this->checkType(JSONType::OBJECT);
+
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     return m.count(key);
 }
-
-
 
 void JSON::set(const std::string& key, const JSON& value) {
     this->checkType(JSONType::OBJECT);
@@ -397,7 +427,7 @@ void JSON::set(const std::string& key, const JSON& value) {
     m[key] = value;
 }
 
-const JSON& JSON::get(const std::string& key, const JSON& defaultValue = JSON(), bool setIfNotExists = false) {
+const JSON& JSON::get(const std::string& key, const JSON& defaultValue, bool setIfNotExists) {
     this->checkType(JSONType::OBJECT);
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     auto itr = m.find(key);
@@ -410,6 +440,18 @@ const JSON& JSON::get(const std::string& key, const JSON& defaultValue = JSON(),
     }
 
     return defaultValue;
+}
+
+const JSON& JSON::get(const std::string& key, const JSON& defaultValue) const {
+    this->checkType(JSONType::OBJECT);
+    auto& m = *(std::map<std::string, JSON>*)(this->content);
+    auto itr = m.find(key);
+
+    if (itr != m.end()) {
+        return itr->second;
+    } else {
+        return defaultValue;
+    }
 }
 
 JSON::operator JSON() {

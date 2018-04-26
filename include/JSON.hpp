@@ -150,20 +150,32 @@ class JSON {
     operator long double() const;
     JSON(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
 
-    bool isInteger();
-    bool isReal();
-    bool isBool();
-    bool isHex();
-    bool isHex16();
-    bool isHex32();
-    bool isHex64();
+    bool isInteger() const;
+    bool isReal() const;
+    bool isBool() const;
+    bool isHex() const;
+    bool isHex16() const;
+    bool isHex32() const;
+    bool isHex64() const;
     
-    bool isString();
-    bool isArray();
+    bool isString() const;
+    bool isArray() const;
 
-    bool exists(const std::string& key);
+    bool isInteger(const std::string& key) const;
+    bool isReal(const std::string& key) const;
+    bool isBool(const std::string& key) const;
+    bool isHex(const std::string& key) const;
+    bool isHex16(const std::string& key) const;
+    bool isHex32(const std::string& key) const;
+    bool isHex64(const std::string& key) const;
+    
+    bool isString(const std::string& key) const;
+    bool isArray(const std::string& key) const;
+
+    bool exists(const std::string& key) const;
     void set(const std::string& key, const JSON& value);
-    const JSON& get(const std::string& key, const JSON& defaultValue, bool setIfNotExists);
+    const JSON& get(const std::string& key, const JSON& defaultValue = JSON(), bool setIfNotExists = false);
+    const JSON& get(const std::string& key, const JSON& defaultValue = JSON()) const;
 
     operator JSON();
     operator JSON() const;
