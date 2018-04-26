@@ -251,6 +251,9 @@ class JSON {
 
     template<typename T>
     T get();
+
+     template<typename T>
+    T get() const;   
 };
 
 class StringifyPart {

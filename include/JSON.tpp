@@ -185,4 +185,9 @@ T JSON::get() {
     return this->operator T();
 }
 
+template<typename T>
+T JSON::get() const {
+    return this->operator T();
+}
+
 }  // namespace AutoJson
