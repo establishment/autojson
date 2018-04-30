@@ -157,6 +157,7 @@ class JSON {
     bool isHex16() const;
     bool isHex32() const;
     bool isHex64() const;
+    bool isHex128() const;
     
     bool isString() const;
     bool isArray() const;
@@ -168,6 +169,7 @@ class JSON {
     bool isHex16(const std::string& key) const;
     bool isHex32(const std::string& key) const;
     bool isHex64(const std::string& key) const;
+    bool isHex128(const std::string& key) const;
     
     bool isString(const std::string& key) const;
     bool isArray(const std::string& key) const;

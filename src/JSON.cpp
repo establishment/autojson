@@ -375,6 +375,10 @@ bool JSON::isHex64() const {
     return this->isHex() and ((std::string*)(this->content))->size() == 64;
 }
 
+bool JSON::isHex128() const {
+    return this->isHex() and ((std::string*)(this->content))->size() == 128;
+}
+
 bool JSON::isString() const {
     return this->type == JSONType::STRING;
 }
@@ -394,22 +398,31 @@ bool JSON::isReal(const std::string& key) const {
 bool JSON::isBool(const std::string& key) const {
     return this->exists(key) && this->get(key).isBool();
 }
+
 bool JSON::isHex(const std::string& key) const {
     return this->exists(key) && this->get(key).isHex();
 }
+
 bool JSON::isHex16(const std::string& key) const {
     return this->exists(key) && this->get(key).isHex16();
 }
+
 bool JSON::isHex32(const std::string& key) const {
     return this->exists(key) && this->get(key).isHex32();
 }
+
 bool JSON::isHex64(const std::string& key) const {
     return this->exists(key) && this->get(key).isHex64();
+}
+
+bool JSON::isHex128(const std::string& key) const {
+    return this->exists(key) && this->get(key).isHex128();
 }
 
 bool JSON::isString(const std::string& key) const {
     return this->exists(key) && this->get(key).isString();
 }
+
 bool JSON::isArray(const std::string& key) const {
     return this->exists(key) && this->get(key).isArray();
 }
