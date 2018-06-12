@@ -88,6 +88,7 @@ JSON::JSON(std::initializer_list<JSON> list) {
 
         this->type = JSONType::OBJECT;
         this->content = mp;
+        delete vp;
     } else {
         this->type = JSONType::VECTOR;
         this->content = vp;
