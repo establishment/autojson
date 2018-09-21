@@ -455,11 +455,15 @@ const JSON& JSON::getOrSet(const std::string& key, const JSON& defaultValue) {
 }
 
 const JSON& JSON::get(const std::string& key, const JSON& defaultValue) const {
-    this->checkType(JSONType::OBJECT);
+    if (JSONType::OBJECT != this->type) {
+        return defaultValue;
+    }
+
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     auto itr = m.find(key);
 
     if (itr != m.end()) {
+        this->checkType(JSONType::OBJECT);
         return itr->second;
     } else {
         return defaultValue;
