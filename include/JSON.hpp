@@ -176,7 +176,7 @@ class JSON {
 
     bool exists(const std::string& key) const;
     void set(const std::string& key, const JSON& value);
-    const JSON& get(const std::string& key, const JSON& defaultValue = JSON(), bool setIfNotExists = false);
+    const JSON& getOrSet(const std::string& key, const JSON& defaultValue = JSON());
     const JSON& get(const std::string& key, const JSON& defaultValue = JSON()) const;
 
     operator JSON();

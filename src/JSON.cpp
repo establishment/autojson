@@ -441,7 +441,7 @@ void JSON::set(const std::string& key, const JSON& value) {
     m[key] = value;
 }
 
-const JSON& JSON::get(const std::string& key, const JSON& defaultValue, bool setIfNotExists) {
+const JSON& JSON::getOrSet(const std::string& key, const JSON& defaultValue) {
     this->checkType(JSONType::OBJECT);
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     auto itr = m.find(key);
@@ -449,9 +449,7 @@ const JSON& JSON::get(const std::string& key, const JSON& defaultValue, bool set
         return itr->second;
     }
 
-    if (setIfNotExists) {
-        m[key] = defaultValue;
-    }
+    m[key] = defaultValue;
 
     return defaultValue;
 }
