@@ -237,20 +237,6 @@ class JSON {
 
     bool valid() { return type; }
 
-    // very very general stuff
-
-    template<typename Type>
-    operator Type(); // RIP camelCase
-
-    // If type is unknown, treat the object like a primitive
-    // This constructor can be specialised for custom classes
-    template<typename Type>
-    JSON(const Type &a);
-
-    // if you want to call it explicitely
-    template<typename T>
-    void loadInto(T &x);
-
     template<typename T>
     T get();
 

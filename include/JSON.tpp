@@ -126,68 +126,14 @@ JSON::operator std::map<std::string, Type>() const {
     return m;
 }
 
-template<typename Type>
-JSON::operator Type() {
-    char * name = 0;
-    int status;
-    name = abi::__cxa_demangle(typeid(Type).name(), 0, 0, &status);
-
-    std::string typeName = "";
-
-    if (name != 0) {
-        typeName = name;
-    } else {
-        typeName = typeid(Type).name();
-    }
-
-    free(name);
-
-    std::string message = "";
-    message += "Unknown conversion from JSON to ";
-    message += typeName;
-    message += "\n";
-    JSONError(message);
-}
-
-// If type is unknown, treat the object like a primitive
-// This constructor can be specialised for custom classes
-template<typename Type>
-JSON::JSON(__attribute__((unused)) const Type &a) {
-    char * name = 0;
-    int status;
-    name = abi::__cxa_demangle(typeid(Type).name(), 0, 0, &status);
-
-    std::string typeName = "";
-
-    if (name != 0) {
-        typeName = name;
-    } else {
-        typeName = typeid(Type).name();
-    }
-
-    free(name);
-
-    std::string message = "";
-    message += "Undefined constructor for Json from type ";
-    message += typeName;
-    message += "\n";
-    JSONError(message);
-}
-
-// if you want to call it explicitely
-template<typename T>
-void JSON::loadInto(T &x) {
-    x = this->operator T();
-}
-
 template<typename T>
 T JSON::get() {
-    return this->operator T();
+    return T(*this);
 }
 
 template<typename T>
 T JSON::get() const {
-    return this->operator T();
+    return T(*this);
 }
 
 }  // namespace AutoJson
