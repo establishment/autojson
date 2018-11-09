@@ -1,6 +1,0 @@
-#ifndef AUTOJSON_ENTRY_POINT
-#define AUTOJSON_ENTRY_POINT
-
-#include "JSON.hpp"
-
-#endif // AUTOJSON_ENTRY_POINT

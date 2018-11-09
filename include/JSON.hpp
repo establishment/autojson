@@ -1,5 +1,5 @@
-#ifndef AUTOJSON_JSON_HPP
-#define AUTOJSON_JSON_HPP
+#ifndef AUTOJSON_JSON
+#define AUTOJSON_JSON
 
 #include <initializer_list>
 #include <ostream>
@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace autojson {
-
 enum JSONType {
     INVALID,
     PRIMITIVE,
@@ -20,7 +19,7 @@ enum JSONType {
 class StringifyPart;
 
 class JSON {
-  public:
+public:
     int type;
     void *content;
 
@@ -30,6 +29,28 @@ class JSON {
 
     // takes ownership of pointer
     JSON(JSONType type, void *content) : type(type), content(content) { }
+
+    // small STL constructors
+    template<typename Type>
+    JSON(const std::vector<Type> &els) : type(JSONType::VECTOR) {
+        auto v = new std::vector<JSON>;
+
+        for (const Type& itr : els) {
+            v->emplace_back(JSON(itr));
+        }
+
+        this->content = v;
+    }
+
+    template<typename T>
+    JSON(const std::map<std::string, T> &els) : type(JSONType::OBJECT) {
+        auto m = new std::map<std::string, JSON>;
+
+        for (const auto& itr : els) {
+            (*m)[itr.first] = JSON(itr.second);
+        }
+        this->content = m;
+    }
 
     ~JSON();
 
@@ -45,19 +66,32 @@ class JSON {
     // the | or || operator will give it a valud for easier use when writing
     // deserialize specialised methods
     template<typename T>
-    JSON& operator||(const T&);
+    JSON& operator||(const T &rhs) {
+        if (this->type == JSONType::INVALID) {
+            *this = JSON(rhs);
+        }
+        return *this;
+    }
 
     template<typename T>
-    JSON& operator||(T&&);
+    JSON& operator||(T &&rhs) {
+        if (this->type == JSONType::INVALID) {
+            *this = JSON(std::move(rhs));
+        }
+        return *this;
+    }
+
+    template<typename T>
+    JSON& operator|(const T &rhs) {
+        return *this || rhs;
+    }
+
+    template<typename T>
+    JSON& operator|(T &&rhs) {
+        return *this || std::move(rhs);
+    }
 
     JSON& operator||(std::initializer_list<JSON>);
-
-    template<typename T>
-    JSON& operator|(const T&);
-
-    template<typename T>
-    JSON& operator|(T&&);
-
     JSON& operator|(std::initializer_list<JSON>);
 
     // strings
@@ -67,20 +101,19 @@ class JSON {
 
     JSON(const std::string &c) : type(JSONType::STRING), content(new std::string(c)) { }
 
-    // Deep copy pointers
     template<typename T>
-    JSON(const T*);
-
-    // Deep copy pointers
-    template<typename T>
-    JSON(T*);
-
-    // Light stl constructors
-    template<typename Type>
-    JSON(const std::vector<Type>&);
+    JSON(const T *x) : type(INVALID), content(nullptr) {
+        if (x != nullptr) {
+            *this = JSON(*x);
+        }
+    }
 
     template<typename T>
-    JSON(const std::map<std::string, T> &els);
+    JSON(T *x) : type(INVALID), content(nullptr) {
+        if (x != nullptr) {
+            *this = JSON(*x);
+        }
+    }
 
     // std initializer constructor - does good things
     JSON(std::initializer_list<JSON> list);
@@ -158,7 +191,7 @@ class JSON {
     bool isHex32() const;
     bool isHex64() const;
     bool isHex128() const;
-    
+
     bool isString() const;
     bool isArray() const;
 
@@ -170,7 +203,7 @@ class JSON {
     bool isHex32(const std::string& key) const;
     bool isHex64(const std::string& key) const;
     bool isHex128(const std::string& key) const;
-    
+
     bool isString(const std::string& key) const;
     bool isArray(const std::string& key) const;
 
@@ -198,10 +231,24 @@ class JSON {
     JSON& operator[](int key);
 
     template<typename Type>
-    operator std::vector<Type>();
+    operator std::vector<Type>() {
+        this->checkType(JSONType::VECTOR);
+        std::vector<Type> v;
+        for (JSON& itr : (*this)) {
+            v.emplace_back(itr.get<Type>());
+        }
+        return v;
+    }
 
     template<typename Type>
-    operator std::vector<Type>() const;
+    operator std::vector<Type>() const {
+        this->checkType(JSONType::VECTOR);
+        std::vector<Type> v;
+        for (const JSON& itr : (*this)) {
+            v.emplace_back(itr.get<Type>());
+        }
+        return v;
+    }
 
     // for for-based loops
     std::vector<JSON>::iterator begin();
@@ -211,10 +258,20 @@ class JSON {
     std::vector<JSON>::const_iterator end() const;
 
     template<typename Type>
-    JSON& push_back(const Type&);
+    JSON& push_back(const Type &rhs) {
+        this->checkType(JSONType::VECTOR);
+        auto& v = *(std::vector<JSON>*)(this->content);
+        v.push_back(rhs);
+        return v.back();
+    }
 
     template<typename Type>
-    JSON& emplace_back(Type&&);
+    JSON& emplace_back(Type &&rhs) {
+        this->checkType(JSONType::VECTOR);
+        auto& v = *(std::vector<JSON>*)(this->content);
+        v.emplace_back(rhs);
+        return v.back();
+    }
 
     void pop_back();
 
@@ -230,29 +287,47 @@ class JSON {
     JSON& operator[](const char* key);
 
     template<typename Type>
-    operator std::map<std::string, Type>();
+    operator std::map<std::string, Type>() {
+        std::map<std::string, Type> m;
+        auto& mp = *(std::map<std::string, JSON>*)(content);
+        for (auto& itr : mp) {
+            m[itr.first] = itr.second.get<Type>();
+        }
+        return m;
+    }
 
     template<typename Type>
-    operator std::map<std::string, Type>() const;
+    operator std::map<std::string, Type>() const {
+        std::map<std::string, Type> m;
+        auto& mp = *(std::map<std::string, JSON>*)(content);
+        for (const auto& itr : mp) {
+            m[itr.first] = itr.second.get<Type>();
+        }
+        return m;
+    }
 
     bool valid() { return type; }
 
     template<typename T>
-    T get();
+    T get() {
+        return T(*this);
+    }
 
-     template<typename T>
-    T get() const;   
+    template<typename T>
+    T get() const {
+        return T(*this);
+    }
 };
 
 class StringifyPart {
-  public:
+public:
     std::string& result;
     int indentLevel;
     bool shrink;
     bool continueLine;
 
     StringifyPart(std::string& result, int indentLevel, bool shrink, bool continueLine)
-        : result(result), indentLevel(indentLevel), shrink(shrink), continueLine(continueLine) {
+            : result(result), indentLevel(indentLevel), shrink(shrink), continueLine(continueLine) {
     }
 
     StringifyPart increaseIndent();
@@ -268,10 +343,4 @@ class StringifyPart {
 
 }  // namespace autojson
 
-#include "JSON.tpp"
-
-#ifndef autojsonuselib
-#include "autojson_src/JSON.cpp"
-#endif
-
-#endif // AUTOJSON_JSON_HPP
+#endif // AUTOJSON_JSON
