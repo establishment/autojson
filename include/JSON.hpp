@@ -101,20 +101,6 @@ public:
 
     JSON(const std::string &c) : type(JSONType::STRING), content(new std::string(c)) { }
 
-    template<typename T>
-    JSON(const T *x) : type(INVALID), content(nullptr) {
-        if (x != nullptr) {
-            *this = JSON(*x);
-        }
-    }
-
-    template<typename T>
-    JSON(T *x) : type(INVALID), content(nullptr) {
-        if (x != nullptr) {
-            *this = JSON(*x);
-        }
-    }
-
     // std initializer constructor - does good things
     JSON(std::initializer_list<JSON> list);
 
