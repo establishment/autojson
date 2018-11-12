@@ -133,39 +133,30 @@ public:
     // to the converted value and assign it with a default value
     // * 0 for numbers and empty for the other
     // better than throwing an exception
-    operator bool();
     operator bool() const;
     JSON(bool b) : type(PRIMITIVE), content(new std::string(b ? "true" : "false")) { }
 
-    operator int();
     operator int() const;
     JSON(int i) : type(PRIMITIVE), content(new std::string(std::to_string(i))) { }
 
-    operator long();
     operator long() const;
     JSON(long l) : type(PRIMITIVE), content(new std::string(std::to_string(l))) { }
 
-    operator unsigned long();
     operator unsigned long() const;
     JSON(unsigned long ul) : type(PRIMITIVE), content(new std::string(std::to_string(ul))) { }
 
-    operator long long();
     operator long long() const;
     JSON(long long ll) : type(PRIMITIVE), content(new std::string(std::to_string(ll))) { }
 
-    operator unsigned long long();
     operator unsigned long long() const;
     JSON(unsigned long long ull) : type(PRIMITIVE), content(new std::string(std::to_string(ull))) { }
 
-    operator float();
     operator float() const;
     JSON(float f) : type(PRIMITIVE), content(new std::string(std::to_string(f))) { }
 
-    operator double();
     operator double() const;
     JSON(double d) : type(PRIMITIVE), content(new std::string(std::to_string(d))) { }
 
-    operator long double();
     operator long double() const;
     JSON(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
 

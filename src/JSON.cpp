@@ -216,16 +216,6 @@ void JSON::stringifyPrimitive(StringifyPart part) const {
     part.result += *((std::string*)content);
 }
 
-JSON::operator bool() {
-    this->checkType(JSONType::PRIMITIVE);
-    auto& txt = *(std::string*)(this->content);
-    bool val = false;
-    if (txt == "true" || txt == "1") {
-        val = true;
-    }
-    return val;
-}
-
 JSON::operator bool() const {
     this->checkType(JSONType::PRIMITIVE);
     auto& txt = *(std::string*)(this->content);
@@ -236,19 +226,9 @@ JSON::operator bool() const {
     return val;
 }
 
-JSON::operator int() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stoi(*(std::string*)(this->content));
-}
-
 JSON::operator int() const {
     this->checkType(JSONType::PRIMITIVE);
     return std::stoi(*(std::string*)(this->content));
-}
-
-JSON::operator long() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stol(*(std::string*)(this->content));
 }
 
 JSON::operator long() const {
@@ -256,19 +236,9 @@ JSON::operator long() const {
     return std::stol(*(std::string*)(this->content));
 }
 
-JSON::operator unsigned long() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stoul(*(std::string*)(this->content));
-}
-
 JSON::operator unsigned long() const {
     this->checkType(JSONType::PRIMITIVE);
     return std::stoul(*(std::string*)(this->content));
-}
-
-JSON::operator long long() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stoll(*(std::string*)(this->content));
 }
 
 JSON::operator long long() const {
@@ -276,19 +246,9 @@ JSON::operator long long() const {
     return std::stoll(*(std::string*)(this->content));
 }
 
-JSON::operator unsigned long long() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stoull(*(std::string*)(this->content));
-}
-
 JSON::operator unsigned long long() const {
     this->checkType(JSONType::PRIMITIVE);
     return std::stoull(*(std::string*)(this->content));
-}
-
-JSON::operator float() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stof(*(std::string*)(this->content));
 }
 
 JSON::operator float() const {
@@ -296,19 +256,9 @@ JSON::operator float() const {
     return std::stof(*(std::string*)(this->content));
 }
 
-JSON::operator double() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stod(*(std::string*)(this->content));
-}
-
 JSON::operator double() const {
     this->checkType(JSONType::PRIMITIVE);
     return std::stod(*(std::string*)(this->content));
-}
-
-JSON::operator long double() {
-    this->checkType(JSONType::PRIMITIVE);
-    return std::stold(*(std::string*)(this->content));
 }
 
 JSON::operator long double() const {
