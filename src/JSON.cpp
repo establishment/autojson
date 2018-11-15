@@ -95,14 +95,6 @@ JSON::JSON(std::initializer_list<JSON> list) {
     }
 }
 
-JSON& JSON::operator||(std::initializer_list<JSON> list) {
-    return *this | JSON(list);
-}
-
-JSON& JSON::operator|(std::initializer_list<JSON> list) {
-    return *this | JSON(list);
-}
-
 /// Parser for generic JSON
 JSON JSON::parse(const char*& content) {
     auto CurrentChar = [&]() {
@@ -185,29 +177,21 @@ std::string JSON::stringify(int shrink) const {
     return result;
 }
 
-void JSON::checkType(JSONType type) {
-    if (type != this->type) {
-        if (this->type == JSONType::INVALID) {
-            *this = JSON(type);
-        } else {
-            std::string message = "Wrong type. Expected ";
-            message += std::to_string(this->type);
-            message += " but got ";
-            message += std::to_string(type);
-            JSONError(message);
-        }
-    }
-}
-
 void JSON::checkType(JSONType type) const {
     if (type != this->type) {
-        JSONError("Wrong type. Const checktype");
+        JSONError(
+                "Wrong JSON type check. Expected: " + JSONTypeToString(type) +
+                " but have " + JSONTypeToString(this->type)
+        );
     }
 }
 
-std::ostream& operator<<(std::ostream& stream, const JSON& json) {
-    stream << json.stringify();
-    return stream;
+void JSON::checkTypeAndSetIfInvalid(JSONType type) {
+    if (this->type == JSONType::INVALID) {
+        (*this) = JSON(type);
+    } else {
+        this->checkType(type);
+    }
 }
 
 /// JSON Primitive
@@ -216,14 +200,22 @@ void JSON::stringifyPrimitive(StringifyPart part) const {
     part.result += *((std::string*)content);
 }
 
+// Make the bool operator differently than the others
+// In case the JSON is invalid (the field is not present in a map) returns false
 JSON::operator bool() const {
-    this->checkType(JSONType::PRIMITIVE);
-    auto& txt = *(std::string*)(this->content);
-    bool val = false;
-    if (txt == "true" || txt == "1") {
-        val = true;
+    if (this->type == JSONType::PRIMITIVE) {
+        auto &txt = *(std::string *) (this->content);
+        bool val = false;
+        if (txt == "true" || txt == "1") {
+            val = true;
+        }
+        return val;
+    } else if (this->type == JSONType::INVALID) {
+        return false;
+    } else {
+        this->checkType(JSONType::PRIMITIVE);
+        return false;
     }
-    return val;
 }
 
 JSON::operator int() const {
@@ -386,13 +378,13 @@ bool JSON::exists(const std::string& key) const {
 }
 
 void JSON::set(const std::string& key, const JSON& value) {
-    this->checkType(JSONType::OBJECT);
+    this->checkTypeAndSetIfInvalid(JSONType::OBJECT);
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     m[key] = value;
 }
 
-const JSON& JSON::getOrSet(const std::string& key, const JSON& defaultValue) {
-    this->checkType(JSONType::OBJECT);
+JSON& JSON::getOrSet(const std::string& key, const JSON& defaultValue) {
+    this->checkTypeAndSetIfInvalid(JSONType::OBJECT);
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     auto itr = m.find(key);
     if (itr != m.end()) {
@@ -401,10 +393,10 @@ const JSON& JSON::getOrSet(const std::string& key, const JSON& defaultValue) {
 
     m[key] = defaultValue;
 
-    return defaultValue;
+    return m[key];
 }
 
-const JSON& JSON::get(const std::string& key, const JSON& defaultValue) const {
+JSON JSON::get(const std::string& key, const JSON& defaultValue) const {
     if (JSONType::OBJECT != this->type) {
         return defaultValue;
     }
@@ -420,25 +412,9 @@ const JSON& JSON::get(const std::string& key, const JSON& defaultValue) const {
     }
 }
 
-JSON::operator JSON() {
-    return *this;
-}
-
-JSON::operator JSON() const {
-    return *this;
-}
-
 void JSON::stringifyString(StringifyPart part) const {
     part.indent();
     part.result += "\"" + EscapeKeys(*((std::string*)content)) + "\"";
-}
-
-JSON::operator std::string() {
-    if (this->type == JSONType::STRING) {
-        return std::string(*(std::string*)(this->content));
-    } else {
-        return this->stringify();
-    }
 }
 
 JSON::operator std::string() const {
@@ -497,7 +473,7 @@ JSON JSON::parseVector(const char *&content) {
 }
 
 JSON& JSON::operator[](int key) {
-    this->checkType(JSONType::VECTOR);
+    this->checkTypeAndSetIfInvalid(JSONType::VECTOR);
     auto& v = *(std::vector<JSON>*)(this->content);
     if (0 <= key and key < (int)v.size()) {
         return v[key];
@@ -534,12 +510,6 @@ std::vector<JSON>::const_iterator JSON::end() const {
     this->checkType(JSONType::VECTOR);
     const auto& v = *(std::vector<JSON>*)(this->content);
     return v.end();
-}
-
-void JSON::pop_back() {
-    this->checkType(JSONType::VECTOR);
-    auto& v = *(std::vector<JSON>*)(this->content);
-    v.pop_back();
 }
 
 int JSON::size() const {
@@ -607,7 +577,7 @@ JSON JSON::parseObject(const char*& content) {
 }
 
 JSON& JSON::operator[](const std::string& key) {
-    this->checkType(JSONType::OBJECT);
+    this->checkTypeAndSetIfInvalid(JSONType::OBJECT);
     auto& m = *(std::map<std::string, JSON>*)(this->content);
     return m[key];
 }

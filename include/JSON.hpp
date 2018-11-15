@@ -8,6 +8,7 @@
 #include <vector>
 
 namespace autojson {
+
 enum JSONType {
     INVALID,
     PRIMITIVE,
@@ -16,11 +17,22 @@ enum JSONType {
     OBJECT
 };
 
+inline std::string JSONTypeToString(JSONType t) {
+    switch (t) {
+        case INVALID:       return "invalid";
+        case PRIMITIVE:     return "primitive";
+        case STRING:        return "string";
+        case VECTOR:        return "vector";
+        case OBJECT:        return "object";
+        default:            return "unknown";
+    }
+}
+
 class StringifyPart;
 
 class JSON {
 public:
-    int type;
+    JSONType type;
     void *content;
 
     JSON() : type(JSONType::INVALID), content(nullptr) { }
@@ -30,7 +42,11 @@ public:
     // takes ownership of pointer
     JSON(JSONType type, void *content) : type(type), content(content) { }
 
-    // small STL constructors
+    // STL constructors
+    JSON(const std::string &c) : type(JSONType::STRING), content(new std::string(c)) { }
+    JSON(const char *c) : type(JSONType::STRING), content(new std::string(c)) { }
+
+
     template<typename Type>
     JSON(const std::vector<Type> &els) : type(JSONType::VECTOR) {
         auto v = new std::vector<JSON>;
@@ -52,6 +68,9 @@ public:
         this->content = m;
     }
 
+    // std initializer constructor - does good things
+    JSON(std::initializer_list<JSON> list);
+
     ~JSON();
 
     JSON(const JSON&);
@@ -62,11 +81,15 @@ public:
 
     JSON& operator=(JSON&&);
 
-    // if the JSON is invalid (just declared or it's not in a map)
-    // the | or || operator will give it a valud for easier use when writing
-    // deserialize specialised methods
+    // If the JSON is invalid (just declared or it's not in a map)
+    // The | operator will give it a valid for easier use when writing deserialize specialised methods
+    // Example of usages:
+    //  int seed = jsonEntry["seed"] | 1337;
+
+    // Do not use like below if you're *NOT SURE* that jsonEntry["config"] is a valid map
+    //  int seed = jsonEntry["config"]["seed"] | 1337;
     template<typename T>
-    JSON& operator||(const T &rhs) {
+    JSON& operator|(const T &rhs) {
         if (this->type == JSONType::INVALID) {
             *this = JSON(rhs);
         }
@@ -74,56 +97,24 @@ public:
     }
 
     template<typename T>
-    JSON& operator||(T &&rhs) {
+    JSON& operator|(T &&rhs) {
         if (this->type == JSONType::INVALID) {
             *this = JSON(std::move(rhs));
         }
         return *this;
     }
 
-    template<typename T>
-    JSON& operator|(const T &rhs) {
-        return *this || rhs;
-    }
-
-    template<typename T>
-    JSON& operator|(T &&rhs) {
-        return *this || std::move(rhs);
-    }
-
-    JSON& operator||(std::initializer_list<JSON>);
-    JSON& operator|(std::initializer_list<JSON>);
-
-    // strings
-    JSON(char c) : type(JSONType::STRING), content(new std::string(1, c)) { }
-
-    JSON(const char *c) : type(JSONType::STRING), content(new std::string(c)) { }
-
-    JSON(const std::string &c) : type(JSONType::STRING), content(new std::string(c)) { }
-
-    // std initializer constructor - does good things
-    JSON(std::initializer_list<JSON> list);
-
-    // ParseJson
+    // Deserialize API
     static JSON parse(const char *&content);
 
     static JSON parse(const std::string &content);
 
     static JSON readFromFile(const std::string &file_name);
 
-    // Output JSON to String
+    // Serialize API
     std::string stringify(int shrink=true) const;
 
     void stringify(StringifyPart part) const;
-
-    // helper functions.
-    // The non-const method casts the JSON to the desired type
-    // if it's INVALID
-    void checkType(JSONType type);
-
-    void checkType(JSONType type) const;
-
-    friend std::ostream& operator<<(std::ostream &stream, const JSON &JSON);
 
     /// primitive
 
@@ -186,17 +177,13 @@ public:
 
     bool exists(const std::string& key) const;
     void set(const std::string& key, const JSON& value);
-    const JSON& getOrSet(const std::string& key, const JSON& defaultValue = JSON());
-    const JSON& get(const std::string& key, const JSON& defaultValue = JSON()) const;
-
-    operator JSON();
-    operator JSON() const;
+    JSON& getOrSet(const std::string& key, const JSON& defaultValue = JSON());
+    JSON get(const std::string& key, const JSON& defaultValue = JSON()) const;
 
     // string
 
     void stringifyString(StringifyPart part) const;
 
-    operator std::string();
     operator std::string() const;
 
     // vector
@@ -208,21 +195,11 @@ public:
     JSON& operator[](int key);
 
     template<typename Type>
-    operator std::vector<Type>() {
-        this->checkType(JSONType::VECTOR);
-        std::vector<Type> v;
-        for (JSON& itr : (*this)) {
-            v.emplace_back(itr.get<Type>());
-        }
-        return v;
-    }
-
-    template<typename Type>
     operator std::vector<Type>() const {
         this->checkType(JSONType::VECTOR);
         std::vector<Type> v;
         for (const JSON& itr : (*this)) {
-            v.emplace_back(itr.get<Type>());
+            v.emplace_back((Type)itr);
         }
         return v;
     }
@@ -236,7 +213,7 @@ public:
 
     template<typename Type>
     JSON& push_back(const Type &rhs) {
-        this->checkType(JSONType::VECTOR);
+        this->checkTypeAndSetIfInvalid(JSONType::VECTOR);
         auto& v = *(std::vector<JSON>*)(this->content);
         v.push_back(rhs);
         return v.back();
@@ -244,13 +221,17 @@ public:
 
     template<typename Type>
     JSON& emplace_back(Type &&rhs) {
-        this->checkType(JSONType::VECTOR);
+        this->checkTypeAndSetIfInvalid(JSONType::VECTOR);
         auto& v = *(std::vector<JSON>*)(this->content);
         v.emplace_back(rhs);
         return v.back();
     }
 
-    void pop_back();
+    void pop_back() {
+        this->checkTypeAndSetIfInvalid(JSONType::VECTOR);
+        auto& v = *(std::vector<JSON>*)(this->content);
+        v.pop_back();
+    }
 
     int size() const;
 
@@ -260,41 +241,32 @@ public:
     void stringifyObject(StringifyPart part) const;
 
     JSON& operator[](const std::string &key);
+    JSON& operator[](const char *key);
 
-    JSON& operator[](const char* key);
-
-    template<typename Type>
-    operator std::map<std::string, Type>() {
-        std::map<std::string, Type> m;
-        auto& mp = *(std::map<std::string, JSON>*)(content);
-        for (auto& itr : mp) {
-            m[itr.first] = itr.second.get<Type>();
-        }
-        return m;
-    }
 
     template<typename Type>
     operator std::map<std::string, Type>() const {
         std::map<std::string, Type> m;
         auto& mp = *(std::map<std::string, JSON>*)(content);
         for (const auto& itr : mp) {
-            m[itr.first] = itr.second.get<Type>();
+            m[itr.first] = (Type)(itr.second);
         }
         return m;
     }
 
-    bool valid() { return type; }
+    // Helper functions.
+    void checkType(JSONType type) const;
+    void checkTypeAndSetIfInvalid(JSONType type);
 
-    template<typename T>
-    T get() {
-        return T(*this);
-    }
-
-    template<typename T>
-    T get() const {
-        return T(*this);
+    bool valid() {
+        return type != INVALID;
     }
 };
+
+inline std::ostream& operator<<(std::ostream &os, const JSON &JSON) {
+    os << JSON.stringify();
+    return os;
+}
 
 class StringifyPart {
 public:
