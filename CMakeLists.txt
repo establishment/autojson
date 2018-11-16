@@ -9,7 +9,6 @@ set(SOURCE_DIR                "src/")
 set(INCLUDE_DIR               "include/")
 
 set(CMAKE_CXX_STANDARD 14)
-add_definitions(-D${PROJECT_NAME}uselib)
 
 set(LIB_PATH                                   "${CMAKE_CURRENT_SOURCE_DIR}/build/lib")
 set(BIN_PATH                                   "${CMAKE_CURRENT_SOURCE_DIR}/build/bin")
@@ -27,6 +26,7 @@ add_library(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
+target_compile_definitions(${PROJECT_NAME} PUBLIC -D${PROJECT_NAME}uselib)
 
 add_executable(autojson-bin "${BIN_DIR}/Bin.cpp")
 target_link_libraries(autojson-bin PUBLIC ${PROJECT_NAME})
