@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <atomic>
 
 namespace autojson {
 
@@ -150,6 +151,9 @@ public:
 
     operator long double() const;
     JSON(long double ld) : type(PRIMITIVE), content(new std::string(std::to_string(ld))) { }
+
+    template<class T>
+    JSON(const std::atomic<T> &o) : JSON((T)o) {}
 
     bool isInteger() const;
     bool isReal() const;
