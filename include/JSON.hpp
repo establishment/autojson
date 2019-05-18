@@ -131,14 +131,6 @@ public:
     operator int() const;
     JSON(int i) : type(PRIMITIVE), content(new std::string(std::to_string(i))) { }
 
-    template<class T, class=typename std::is_enum<T>::type>
-    operator T() const {
-        return static_cast<T>((int)(*this));
-    }
-
-    template<class T, class=typename std::is_enum<T>::type>
-    JSON(T i): JSON((int)i) {}
-
     operator long() const;
     JSON(long l) : type(PRIMITIVE), content(new std::string(std::to_string(l))) { }
 
