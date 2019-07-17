@@ -294,6 +294,12 @@ public:
     StringifyPart& deleteComma();
 };
 
+typedef void(*FatalErrorCallback)(const std::string&);
+
+FatalErrorCallback& GetFatalErrorCallback();
+
+void SetFatalErrorCallback(FatalErrorCallback callback);
+
 }  // namespace autojson
 
 #endif // AUTOJSON_JSON
