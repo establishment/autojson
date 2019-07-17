@@ -166,6 +166,7 @@ public:
 
     bool isString() const;
     bool isArray() const;
+    bool isObject() const;
 
     bool isInteger(const std::string& key) const;
     bool isReal(const std::string& key) const;
@@ -178,6 +179,7 @@ public:
 
     bool isString(const std::string& key) const;
     bool isArray(const std::string& key) const;
+    bool isObject(const std::string& key) const;
 
     bool exists(const std::string& key) const;
     void set(const std::string& key, const JSON& value);

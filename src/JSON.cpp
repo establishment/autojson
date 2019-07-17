@@ -330,6 +330,10 @@ bool JSON::isArray() const {
     return this->type == JSONType::VECTOR;
 }
 
+bool JSON::isObject() const {
+    return this->type == JSONType::OBJECT;
+}
+
 bool JSON::isInteger(const std::string& key) const {
     return this->exists(key) && this->get(key).isInteger();
 }
@@ -368,6 +372,10 @@ bool JSON::isString(const std::string& key) const {
 
 bool JSON::isArray(const std::string& key) const {
     return this->exists(key) && this->get(key).isArray();
+}
+
+bool JSON::isObject(const std::string& key) const {
+    return this->exists(key) && this->get(key).isObject();
 }
 
 bool JSON::exists(const std::string& key) const {
