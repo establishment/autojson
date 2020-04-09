@@ -41,37 +41,16 @@ void SkipWhitespace(const char *&content, const std::string &customPass) {
 }
 
 std::string EscapeKeys(const std::string &content) {
-    std::string result = "";
+    std::string result;
+    result.reserve(content.size());
     for (char itr : content) {
-        bool needsEscape = false;
-        for (char c : "\"\'") {
-            if (itr == c) {
-                needsEscape = true;
-            }
+        switch (itr) {
+            case '\"': result += "\\\""; break;
+            case '\n': result += "\\n"; break;
+            case '\r': result += "\\r"; break;
+            case '\t': result += "\\t"; break;
+            default: result += itr;
         }
-
-        if (needsEscape) {
-            result += '\\';
-            result += itr;
-            continue;
-        }
-
-        if (itr == '\n') {
-            result += "\\n";
-            continue;
-        }
-
-        if (itr == '\r') {
-            result += "\\r";
-            continue;
-        }
-
-        if (itr == '\t') {
-            result += "\\t";
-            continue;
-        }
-
-        result += itr;
     }
     return result;
 }
