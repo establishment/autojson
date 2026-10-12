@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include <string>
 #include <iostream>
 
@@ -40,17 +41,11 @@ void SkipWhitespace(const char*& content, const std::string& custom_pass) {
     }
 }
 
+// JSON escapes the quote, the backslash and control characters, and nothing else: \' is no JSON escape
 std::string EscapeKeys(const std::string& content) {
     std::string result = "";
     for (char itr : content) {
-        bool needs_escape = false;
-        for (char c : "\"\'") {
-            if (itr == c) {
-                needs_escape = true;
-            }
-        }
-
-        if (needs_escape) {
+        if (itr == '"' || itr == '\\') {
             result += '\\';
             result += itr;
             continue;
@@ -68,6 +63,13 @@ std::string EscapeKeys(const std::string& content) {
 
         if (itr == '\t') {
             result += "\\t";
+            continue;
+        }
+
+        if ((unsigned char)itr < ' ') {
+            char escaped[8];
+            snprintf(escaped, sizeof(escaped), "\\u%04x", itr);
+            result += escaped;
             continue;
         }
 
